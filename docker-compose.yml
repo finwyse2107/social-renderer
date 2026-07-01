@@ -1,0 +1,14 @@
+services:
+  social-renderer:
+    build: .
+    container_name: social-renderer
+    restart: unless-stopped
+    environment:
+      - PORT=4000
+      - SHARED_SECRET=${SHARED_SECRET}
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
