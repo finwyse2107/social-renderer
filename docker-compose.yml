@@ -1,14 +1,18 @@
+version: "3.9"
+
 services:
   social-renderer:
     build: .
     container_name: social-renderer
     restart: unless-stopped
     environment:
-      - PORT=4000
-      - SHARED_SECRET=${SHARED_SECRET}
+      PORT: 4000
+      SHARED_SECRET: ${SHARED_SECRET}
+    # No `ports:` — internal-only. n8n reaches this container as http://social-renderer:4000
     networks:
-      - dokploy-network
+      - n8n-network
 
 networks:
-  dokploy-network:
+  n8n-network:
     external: true
+    name: n8n-n8nrunnerpostgresollama-exwyyz
