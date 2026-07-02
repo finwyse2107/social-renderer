@@ -8,6 +8,10 @@ services:
     environment:
       PORT: 4000
       SHARED_SECRET: ${SHARED_SECRET}
+    # Resource caps so headless Chromium never starves Postiz / n8n on the shared host.
+    mem_limit: 1g
+    memswap_limit: 1g
+    shm_size: "256m"
     # No `ports:` — internal-only. n8n reaches this container as http://social-renderer:4000
     networks:
       - n8n-network
