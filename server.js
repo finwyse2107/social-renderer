@@ -5,12 +5,23 @@ const { renderSlide, renderPin } = require('./templates');
 const PORT = process.env.PORT || 4000;
 const SECRET = process.env.SHARED_SECRET || '';
 const CHROME = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium';
+const IDLE_MS = Number(process.env.IDLE_CLOSE_MS || 120000); // close Chromium after 2 min idle to free RAM
 
 const app = express();
 app.use(express.json({ limit: '4mb' }));
 
-let browser;
+let browser = null;
+let idleTimer = null;
+
+function scheduleIdleClose() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(async () => {
+    if (browser) { try { await browser.close(); } catch (e) {} browser = null; }
+  }, IDLE_MS);
+}
+
 async function getBrowser() {
+  clearTimeout(idleTimer);
   if (!browser || !browser.isConnected()) {
     browser = await puppeteer.launch({
       headless: 'new',
@@ -36,7 +47,10 @@ async function shoot(html, width, height) {
     try { await page.evaluate(() => document.fonts && document.fonts.ready); } catch (e) {}
     const buf = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width, height } });
     return buf.toString('base64');
-  } finally { await page.close(); }
+  } finally {
+    await page.close();
+    scheduleIdleClose();
+  }
 }
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
